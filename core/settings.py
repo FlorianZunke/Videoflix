@@ -33,6 +33,9 @@ DEBUG = True
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",")
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
 
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", default="noreply@videoflix.de")
+
+FRONTEND_URL = os.environ.get("FRONTEND_URL", default="http://localhost:4200")
 
 # Application definition
 
@@ -153,9 +156,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
-DEFAULT_FROM_EMAIL = 'noreply@videoflix.de'
-FRONTEND_URL = 'http://localhost:8000'  # Anpassen!
 
 
 # Static files (CSS, JavaScript, Images)

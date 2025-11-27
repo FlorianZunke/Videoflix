@@ -2,9 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
-from api.serializers import RegisterSerializer
-
-
+from .serializers import RegisterSerializer
 
 
 class RegisterView(APIView):
@@ -20,3 +18,30 @@ class RegisterView(APIView):
                 "token": getattr(user, 'activation_token', '')
             }, status=201)
         return Response(serializer.errors, status=400)
+    
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        pass
+
+
+class ActivateView(APIView):
+    pass
+
+
+class LogoutView(APIView):
+    pass
+
+
+class PasswordResetView(APIView):
+    pass
+
+
+class PasswordResetConfirmView(APIView):
+    pass
+
+
+class TokenRefreshView(APIView):
+    pass

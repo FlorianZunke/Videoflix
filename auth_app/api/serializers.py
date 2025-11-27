@@ -56,3 +56,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.activation_uid = uid
         
         return user
+    
+class LoginSerializer(serializers.Serializer):
+    """
+    Login serializer for user authentication
+    """
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
