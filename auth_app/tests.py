@@ -135,8 +135,23 @@ class AuthAppNegativeTests(TestCase):
             "password": "testpassword123"
         }
 
+    def test_user_registration_with_existing_email(self):
+        self.client.post(self.registration_url, self.user_data)
 
+        response = self.client.post(self.registration_url, self.user_data)
 
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["email"][0], "Email already exists")
+
+    def test_user_registration_with_mismatched_passwords(self):
+        invalid_user_data = self.user_data.copy()
+        invalid_user_data["confirmed_password"] = "differentpassword"
+
+        response = self.client.post(self.registration_url, invalid_user_data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.data["confirmed_password"][0], "Passwords do not match")
 
     def test_user_login_without_activation(self):
         self.client.post(self.registration_url, self.user_data)
@@ -149,3 +164,58 @@ class AuthAppNegativeTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.data["error"], "Account is not activated.")
+
+    def test_user_login_with_incorrect_password(self):
+        self.client.post(self.registration_url, self.user_data)
+
+        User = get_user_model()
+        user = User.objects.get(email=self.user_data["email"])
+        user.is_active = True
+        user.save()
+
+        login_data = {
+            "email": self.user_data["email"],
+            "password": "wrongpassword"
+        }
+        response = self.client.post(self.login_url, login_data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["error"], "Invalid credentials.")
+
+    def test_user_login_with_nonexistent_email(self):
+        login_data = {
+            "email": "nonexistent@example.com",
+            "password": "somepassword"
+        }
+        response = self.client.post(self.login_url, login_data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data["error"], "Invalid credentials.")
+
+    def test_password_reset_with_nonexistent_email(self):
+        password_reset_url = reverse("password_reset")
+        reset_data = {"email": "nonexistent@example.com"}
+        response = self.client.post(password_reset_url, reset_data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["email"][0], "Email does not exist.")
+
+    def test_password_reset_confirm_with_invalid_token(self):
+        self.client.post(self.registration_url, self.user_data)
+        User = get_user_model()
+        user = User.objects.get(email=self.user_data["email"])
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        invalid_token = "invalid-token"
+
+        password_reset_confirm_url = reverse(
+            "password_reset_confirm", args=[uid, invalid_token])
+        new_password_data = {
+            "new_password": "newtestpassword123",
+            "confirmed_password": "newtestpassword123"
+        }
+        response = self.client.post(
+            password_reset_confirm_url, new_password_data)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"], "Invalid token or UID.")
