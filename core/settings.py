@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_rq',
+    'rest_framework_simplejwt',
     'rest_framework',
     'video_app.apps.VideoAppConfig',
 ]

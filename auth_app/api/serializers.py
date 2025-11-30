@@ -3,8 +3,10 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
 
-
+User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     """
@@ -49,17 +51,32 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(self.validated_data['password'])
         user.save()
         
-        # Token für Aktivierungs-E-Mail generieren
+        # Generate activation token and uid for email verification
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         user.activation_token = token
         user.activation_uid = uid
         
         return user
-    
-class LoginSerializer(serializers.Serializer):
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
-    Login serializer for user authentication
+    Custom serializer to include user data in the token response.
     """
-    email = serializers.EmailField()
+    email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(email=email, is_active=True)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
+        
+        if not user.check_password(password):
+            raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
+        
+        data = super().validate({"email": user.email, "password": password, "is_active": user.is_active})
+        return data
