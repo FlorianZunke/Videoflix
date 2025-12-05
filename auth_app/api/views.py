@@ -2,11 +2,18 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer
+from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
+from core.settings import settings
 
-
+User = get_user_model()
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -15,9 +22,11 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response({
-                "message": "User registered successfully. Activation email sent.",
-                "uid": getattr(user, 'activation_uid', ''),
-                "token": getattr(user, 'activation_token', '')
+                "user": {
+                    "id": user.id,
+                    "email": user.email
+                },
+                "token": getattr('activation_token')
             }, status=201)
         return Response(serializer.errors, status=400)
     
@@ -37,11 +46,12 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         refresh = serializer.validated_data["refresh"]
         access = serializer.validated_data["access"]
 
-        response = Response({"user": {
-                                 "id": serializer.user.id,
-                                 "email": serializer.user.email
-                             },
-                             "token": "activation_token"})
+        response = Response({
+            "detail": "Login successful",
+            "user": {
+                "id": serializer.user.id,
+                "email": serializer.user.email
+            }})
 
         response.set_cookie(
             key="access_token",
@@ -123,13 +133,61 @@ class LogoutView(APIView):
         return response
 
 
-class ActivateView(APIView):
+class ActivateAccountView(APIView):
     pass
 
 
 class PasswordResetView(APIView):
-    pass
+    """
+    View for initiating a password reset process.
+    """
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return Response({"detail": "An email has been sent to reset your password."}, status=200)
+            
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            
+            reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm/{uid}/{token}/"
+
+            subject = "Passwort zurücksetzen für dein Videoflix Konto"
+            message = f"Setze dein Passwort zurück: {reset_link}"
+
+            send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+            return Response({"detail": "An email has been sent to reset your password."}, status=200)
+        return Response(serializer.errors, status=400)
 
 
 class PasswordResetConfirmView(APIView):
-    pass
+    def post(self, request, uidb64, token):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, ObjectDoesNotExist):
+            user = None
+            
+        if user is not None and default_token_generator.check_token(user, token):
+            new_password = serializer.validated_data['new_password']
+            user.set_password(new_password)
+            user.save()
+            
+            return Response({"detail": "Your Password has been successfully reset."}, status=200)
+        else:
+            return Response({"detail": "Der Link zur Passwortzurücksetzung ist ungültig oder abgelaufen."}, status=400)

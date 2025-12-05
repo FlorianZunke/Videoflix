@@ -80,3 +80,28 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         data = super().validate({"email": user.email, "password": password, "is_active": user.is_active})
         return data
+    
+class PasswordResetSerializer(serializers.Serializer):
+    """
+    Serializer for initiating password reset
+    """
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    Serializer for confirming password reset
+    """
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirmed_password = serializers.CharField(write_only=True, min_length=8)
+    uid = serializers.CharField() 
+    token = serializers.CharField()
+
+
+    def validate(self, data):
+        """
+        Validate that the new password and confirmed password match
+        """
+        if data['new_password'] != data['confirmed_password']:
+            raise serializers.ValidationError("Passwords do not match")
+        return data

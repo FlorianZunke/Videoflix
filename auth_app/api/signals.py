@@ -23,3 +23,22 @@ def send_activation_email(sender, instance, created, **kwargs):
             [instance.email],
             fail_silently=False,
         )
+
+@receiver(post_save, sender=User)
+def send_password_reset_email(sender, instance, created, **kwargs):
+    if not created and hasattr(instance, 'password_reset_token'):
+        uid = getattr(instance, 'password_reset_uid', '')
+        token = getattr(instance, 'password_reset_token', '')
+        
+        reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm/{uid}/{token}/"
+        
+        subject = "Passwort zurücksetzen für dein Videoflix Konto"
+        message = f"Setze dein Passwort zurück: {reset_link}"
+        
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [instance.email],
+            fail_silently=False,
+        )
