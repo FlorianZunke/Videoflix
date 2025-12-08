@@ -148,7 +148,7 @@ class PasswordResetView(APIView):
             email = serializer.validated_data['email']
             
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(email=email, is_active=True)
             except User.DoesNotExist:
                 return Response({"detail": "An email has been sent to reset your password."}, status=200)
             

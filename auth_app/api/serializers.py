@@ -6,7 +6,7 @@ from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
+from auth_app.models import CustomUser
 
 class RegisterSerializer(serializers.ModelSerializer):
     """
@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     """
     confirmed_password = serializers.CharField(write_only=True)
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['email', 'password', 'confirmed_password']
         extra_kwargs = {
             'password': {'write_only': True},
@@ -36,7 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         """
         Check that the email is unique
         """
-        if User.objects.filter(email=value).exists():
+        if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already exists")
         return value
     
@@ -44,7 +44,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         """
         Create a new user with the validated data
         """
-        user = User(
+        user = CustomUser(
             email=self.validated_data['email'],
             is_active=False
         )
@@ -63,22 +63,26 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     Custom serializer to include user data in the token response.
     """
+    username_field = 'email'
     email = serializers.EmailField(write_only=True)
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = attrs.get("email")
+        email = attrs.get(self.username_field)
         password = attrs.get("password")
 
         try:
-            user = User.objects.get(email=email, is_active=True)
-        except User.DoesNotExist:
+            user = CustomUser.objects.get(**{self.username_field: email})
+            if not user.is_active:
+                raise serializers.ValidationError("Dein Konto ist nicht aktiv. Bitte aktiviere es.")
+        except CustomUser.DoesNotExist:
             raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
         
         if not user.check_password(password):
             raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
         
-        data = super().validate({"email": user.email, "password": password, "is_active": user.is_active})
+        data = super().validate(attrs)
+        self.user = self.context['request'].user
         return data
     
 class PasswordResetSerializer(serializers.Serializer):
