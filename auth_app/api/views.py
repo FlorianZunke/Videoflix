@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
-from core.settings import settings
+from core import settings
 
 User = get_user_model()
 class RegisterView(APIView):
