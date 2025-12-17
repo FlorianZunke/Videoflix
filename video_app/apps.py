@@ -7,4 +7,4 @@ class VideoAppConfig(AppConfig):
 
 
     def ready(self):
-       import video_app.signals
+       import video_app.api.signals
