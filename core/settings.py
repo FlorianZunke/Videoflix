@@ -37,9 +37,16 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", default="noreply@video
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", default="http://localhost:4200")
 
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+]
+
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,13 +54,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_rq',
-    'rest_framework_simplejwt',
     'rest_framework',
-    'video_app.apps.VideoAppConfig',
-    'auth_app.apps.AuthAppConfig',
+    'rest_framework_simplejwt',
+    'auth_app',
+    'video_app',
+    # 'video_app.apps.VideoAppConfig',
+    # 'auth_app.apps.AuthAppConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -180,6 +190,6 @@ AUTH_USER_MODEL = "auth_app.CustomUser"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'auth_app.api.authentication.CookieJWTAuthentication',
     )
 }

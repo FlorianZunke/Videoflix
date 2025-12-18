@@ -26,7 +26,7 @@ class RegisterView(APIView):
                     "id": user.id,
                     "email": user.email
                 },
-                "token": getattr('activation_token')
+                "token": getattr(user, 'activation_token')
             }, status=201)
         return Response(serializer.errors, status=400)
     

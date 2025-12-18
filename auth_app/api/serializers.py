@@ -4,7 +4,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import get_user_model
 
 from auth_app.models import CustomUser
 
@@ -12,6 +11,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     """
     Registration serializer for user sign up
     """
+
     confirmed_password = serializers.CharField(write_only=True)
     class Meta:
         model = CustomUser
@@ -45,6 +45,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         Create a new user with the validated data
         """
         user = CustomUser(
+            username=self.validated_data['email'],
             email=self.validated_data['email'],
             is_active=False
         )
@@ -82,7 +83,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
         
         data = super().validate(attrs)
-        self.user = self.context['request'].user
+        self.user = user
         return data
     
 class PasswordResetSerializer(serializers.Serializer):
@@ -98,8 +99,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     """
     new_password = serializers.CharField(write_only=True, min_length=8)
     confirmed_password = serializers.CharField(write_only=True, min_length=8)
-    uid = serializers.CharField() 
-    token = serializers.CharField()
 
 
     def validate(self, data):
