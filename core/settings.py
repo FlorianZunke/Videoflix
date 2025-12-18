@@ -56,10 +56,10 @@ INSTALLED_APPS = [
     'django_rq',
     'rest_framework',
     'rest_framework_simplejwt',
-    'auth_app',
-    'video_app',
-    # 'video_app.apps.VideoAppConfig',
-    # 'auth_app.apps.AuthAppConfig',
+    # 'auth_app',
+    # 'video_app',
+    'video_app.apps.VideoAppConfig',
+    'auth_app.apps.AuthAppConfig',
 ]
 
 MIDDLEWARE = [
