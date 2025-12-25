@@ -3,7 +3,12 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth import get_user_model
+import django_rq
 
+from .utils import job_send_activation_mail
+
+User = get_user_model()
 
 @receiver(post_save, sender=User)
 def send_activation_email(sender, instance, created, **kwargs):
@@ -13,13 +18,5 @@ def send_activation_email(sender, instance, created, **kwargs):
         
         activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
         
-        subject = "Aktiviere dein Videoflix Konto"
-        message = f"Bitte aktiviere dein Konto: {activation_link}"
-        
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [instance.email],
-            fail_silently=False,
-        )
+        queue = django_rq.get_queue('default')
+        queue.enqueue(job_send_activation_mail, instance.email, activation_link)

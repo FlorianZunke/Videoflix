@@ -1,6 +1,7 @@
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
 import os
+import django_rq
 
 from ..models import Video
 from .utils import convert_to_480p, convert_to_360p, convert_to_720p, convert_to_1080p
@@ -10,10 +11,11 @@ from .utils import convert_to_480p, convert_to_360p, convert_to_720p, convert_to
 def video_post_save(sender, instance, created, **kwargs):
 
     if created:
-        convert_to_360p(instance.video_file.path)
-        convert_to_480p(instance.video_file.path)
-        convert_to_720p(instance.video_file.path)
-        convert_to_1080p(instance.video_file.path)
+        queue = django_rq.get_queue('default', autocommit=True)
+        queue.enqueue(convert_to_360p, instance.video_file.path)
+        queue.enqueue(convert_to_480p, instance.video_file.path)
+        queue.enqueue(convert_to_720p, instance.video_file.path)
+        queue.enqueue(convert_to_1080p, instance.video_file.path)
 
 
 @receiver(post_delete, sender=Video)
