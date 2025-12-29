@@ -4,8 +4,10 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
 
-from auth_app.models import CustomUser
+
+User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     """
@@ -14,7 +16,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     confirmed_password = serializers.CharField(write_only=True)
     class Meta:
-        model = CustomUser
+        model = User
         fields = ['email', 'password', 'confirmed_password']
         extra_kwargs = {
             'password': {'write_only': True},
@@ -36,15 +38,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         """
         Check that the email is unique
         """
-        if CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email already exists")
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
         return value
     
     def save(self, **kwargs):
         """
         Create a new user with the validated data
         """
-        user = CustomUser(
+        user = User(
             username=self.validated_data['email'],
             email=self.validated_data['email'],
             is_active=False
@@ -73,10 +75,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         password = attrs.get("password")
 
         try:
-            user = CustomUser.objects.get(**{self.username_field: email})
+            user = User.objects.get(**{self.username_field: email})
             if not user.is_active:
                 raise serializers.ValidationError("Dein Konto ist nicht aktiv. Bitte aktiviere es.")
-        except CustomUser.DoesNotExist:
+        except User.DoesNotExist:
             raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
         
         if not user.check_password(password):
