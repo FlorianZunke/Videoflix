@@ -6,3 +6,8 @@ class Video(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     video_file = models.FileField(upload_to='videos/')
+    thumbnail = models.FileField(upload_to='thumbnails/', null=True, blank=True)
+    category = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.title
