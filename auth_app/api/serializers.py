@@ -5,6 +5,8 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from .utils import job_send_activation_mail
+from django.conf import settings
 
 
 User = get_user_model()
@@ -43,23 +45,26 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
     
     def save(self, **kwargs):
-        """
-        Create a new user with the validated data
-        """
         user = User(
             username=self.validated_data['email'],
             email=self.validated_data['email'],
             is_active=False
         )
         user.set_password(self.validated_data['password'])
-        user.save()
-        
-        # Generate activation token and uid for email verification
+        user.save() 
+
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
+
         user.activation_token = token
         user.activation_uid = uid
-        
+
+        activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
+        try:
+            job_send_activation_mail(user.email, activation_link)
+        except Exception as e:
+            print(f"Mail-Fehler: {e}")
+    
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
