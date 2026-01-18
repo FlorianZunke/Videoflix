@@ -59,7 +59,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.activation_token = token
         user.activation_uid = uid
 
-        activation_link = f"{settings.FRONTEND_URL}/activate/{uid}/{token}/"
+        activation_link = f"{settings.FRONTEND_URL}/activate.html?uid={uid}&token={token}"
         try:
             job_send_activation_mail(user.email, activation_link)
         except Exception as e:
