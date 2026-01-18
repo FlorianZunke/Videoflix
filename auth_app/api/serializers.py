@@ -4,8 +4,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from .utils import job_send_activation_mail
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 
 
@@ -45,9 +46,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
     
     def save(self, **kwargs):
-        user = User(
+        user = User.objects.create_user(
             username=self.validated_data['email'],
             email=self.validated_data['email'],
+            password=self.validated_data['password'],
             is_active=False
         )
         user.set_password(self.validated_data['password'])
@@ -59,7 +61,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.activation_token = token
         user.activation_uid = uid
 
-        activation_link = f"{settings.FRONTEND_URL}/activate.html?uid={uid}&token={token}"
+        activation_link = f"{settings.FRONTEND_URL}/pages/auth/activate.html?uid={uid}&token={token}"
         try:
             job_send_activation_mail(user.email, activation_link)
         except Exception as e:
@@ -67,29 +69,34 @@ class RegisterSerializer(serializers.ModelSerializer):
     
         return user
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Custom serializer to include user data in the token response.
-    """
-    username_field = 'email'
-    email = serializers.EmailField(write_only=True)
+class CustomTokenObtainPairSerializer(serializers.Serializer):
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = attrs.get(self.username_field)
+        email = attrs.get("email")
         password = attrs.get("password")
 
-        try:
-            user = User.objects.get(**{self.username_field: email})
-            if not user.is_active:
-                raise serializers.ValidationError("Dein Konto ist nicht aktiv. Bitte aktiviere es.")
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
-        
-        if not user.check_password(password):
-            raise serializers.ValidationError("Bitte überprüfe deine Eingaben und versuche es erneut.")
-        
-        data = super().validate(attrs)
+        user_obj = User.objects.filter(email=email).first()
+
+        if not user_obj:
+            raise serializers.ValidationError({"detail": "Kein Konto mit dieser E-Mail gefunden."})
+
+        if not user_obj.is_active:
+            raise serializers.ValidationError({"detail": "Dein Konto ist nicht aktiv. Bitte aktiviere es."})
+
+        user = authenticate(username=email, password=password)
+
+        if user is None:
+            raise serializers.ValidationError({"detail": "Falsches Passwort."})
+
+        refresh = RefreshToken.for_user(user)
+
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
         self.user = user
         return data
     

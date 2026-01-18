@@ -57,7 +57,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="access_token",
             value=str(access),
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax"
         )
 
@@ -65,7 +65,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax"
         )
 
@@ -134,7 +134,22 @@ class LogoutView(APIView):
 
 
 class ActivateAccountView(APIView):
-    pass
+    permission_classes = [AllowAny]
+
+    def get(self, request, uidb64, token):
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=uid)
+            
+            if default_token_generator.check_token(user, token):
+                user.is_active = True
+                user.save()
+                return Response({"message": "Konto erfolgreich aktiviert!"}, status=200)
+            else:
+                return Response({"error": "Der Aktivierungs-Link ist ungültig oder abgelaufen."}, status=400)
+
+        except (TypeError, ValueError, OverflowError, ObjectDoesNotExist):
+            return Response({"error": "Ungültiger Link."}, status=400)
 
 
 class PasswordResetView(APIView):
