@@ -57,16 +57,16 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="access_token",
             value=str(access),
             httponly=True,
-            secure=False,
-            samesite="Lax"
+            secure=True,
+            samesite="None"
         )
 
         response.set_cookie(
             key="refresh_token",
             value=str(refresh),
             httponly=True,
-            secure=False,
-            samesite="Lax"
+            secure=True,
+            samesite="None"
         )
 
         return response

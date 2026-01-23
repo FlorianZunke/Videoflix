@@ -4,24 +4,20 @@ from django.http import FileResponse, Http404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .serializers import VideoSerializer
 from video_app.models import Video
 
 
 class VideoListView(APIView):
-    permission_classes = [IsAuthenticated]
+    # Die Permissions muss noch auf authenticated angepasst werden
+    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
-        # If URL contains movie_id it's used for streaming - not handled here
-        if 'movie_id' in kwargs:
-            return Response({'detail': 'Streaming endpoint not handled by this view.'}, status=501)
-
-        videos = Video.objects.all().order_by('-created_at')
-        serializer = VideoSerializer(videos, many=True, context={'request': request})
+        videos = Video.objects.all()
+        serializer = VideoSerializer(videos, many=True)
         return Response(serializer.data)
-
 
 class VideoHlsManifestView(APIView):
     permission_classes = [IsAuthenticated]
