@@ -4,15 +4,16 @@ from django.http import FileResponse, Http404
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 from .serializers import VideoSerializer
 from video_app.models import Video
+from auth_app.api.authentication import CookieJWTAuthentication
 
 
 class VideoListView(APIView):
-    # Die Permissions muss noch auf authenticated angepasst werden
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
         videos = Video.objects.all()
@@ -21,6 +22,7 @@ class VideoListView(APIView):
 
 class VideoHlsManifestView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
         # Handle HLS master playlist: /video/<movie_id>/<resolution>/index.m3u8
@@ -45,6 +47,7 @@ class VideoHlsManifestView(APIView):
 
 class VideoSegmentView(APIView):
     permission_classes = [IsAuthenticated]
+    authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
         # Handle HLS segment: /video/<movie_id>/<resolution>/<segment>/
