@@ -17,9 +17,6 @@ class VideoSerializer(serializers.ModelSerializer):
         ]
 
     def get_thumbnail_url(self, obj):
-        request = self.context.get('request')
-        if obj.thumbnail and hasattr(obj.thumbnail, 'url'):
-            if request is not None:
-                return request.build_absolute_uri(obj.thumbnail.url)
-            return obj.thumbnail.url
+        if obj.thumbnail:
+            return self.context['request'].build_absolute_uri(obj.thumbnail.url)
         return None

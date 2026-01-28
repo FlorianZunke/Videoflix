@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-# from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.encoding import force_bytes
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.tokens import default_token_generator
@@ -130,8 +130,8 @@ class LogoutView(APIView):
         response = Response(
             {"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
         
-        # token = RefreshToken(request.COOKIES.get("refresh_token"))
-        # token.blacklist()
+        token = RefreshToken(request.COOKIES.get("refresh_token"))
+        token.blacklist()
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
 

@@ -16,9 +16,11 @@ class VideoListView(APIView):
     authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
-        videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
+        videos = Video.objects.all().order_by('-created_at')
+        serializer = VideoSerializer(videos, many=True, context={'request': request})
+
         return Response(serializer.data)
+
 
 class VideoHlsManifestView(APIView):
     permission_classes = [IsAuthenticated]
@@ -30,8 +32,10 @@ class VideoHlsManifestView(APIView):
             movie_id = kwargs.get('movie_id')
             resolution = kwargs.get('resolution')
 
-            base_dir = os.path.normpath(os.path.join(str(settings.MEDIA_ROOT), 'hls'))
-            candidate = os.path.normpath(os.path.join(base_dir, str(movie_id), resolution, 'index.m3u8'))
+            base_dir = os.path.normpath(
+                os.path.join(str(settings.MEDIA_ROOT), 'hls'))
+            candidate = os.path.normpath(os.path.join(
+                base_dir, str(movie_id), resolution, 'index.m3u8'))
 
             # prevent path traversal
             if not candidate.startswith(base_dir + os.sep):
@@ -56,8 +60,10 @@ class VideoSegmentView(APIView):
             resolution = kwargs.get('resolution')
             segment = kwargs.get('segment')
 
-            base_dir = os.path.normpath(os.path.join(str(settings.MEDIA_ROOT), 'hls'))
-            candidate = os.path.normpath(os.path.join(base_dir, str(movie_id), resolution, segment))
+            base_dir = os.path.normpath(
+                os.path.join(str(settings.MEDIA_ROOT), 'hls'))
+            candidate = os.path.normpath(os.path.join(
+                base_dir, str(movie_id), resolution, segment))
 
             # prevent path traversal
             if not candidate.startswith(base_dir + os.sep):
