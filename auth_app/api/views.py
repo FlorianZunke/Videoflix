@@ -122,7 +122,6 @@ class LogoutView(APIView):
     View for logging out a user by clearing authentication cookies.
     """
 
-    # Token muss noch geblacklistet werden
     def post(self, request):
         """
         Handle POST requests for logging out a user.

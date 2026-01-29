@@ -2,6 +2,8 @@ import os
 from django.conf import settings
 from django.http import FileResponse, Http404
 
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.mixins import ListModelMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -11,15 +13,12 @@ from video_app.models import Video
 from auth_app.api.authentication import CookieJWTAuthentication
 
 
-class VideoListView(APIView):
+class VideoListView(ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
-    def get(self, request, *args, **kwargs):
-        videos = Video.objects.all().order_by('-created_at')
-        serializer = VideoSerializer(videos, many=True, context={'request': request})
-
-        return Response(serializer.data)
+    queryset = Video.objects.all().order_by('-created_at')
+    serializer_class = VideoSerializer
 
 
 class VideoHlsManifestView(APIView):

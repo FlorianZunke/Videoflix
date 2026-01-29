@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-from video_app.models import Video
 from django.conf import settings
 
 
@@ -24,7 +23,7 @@ def convert_and_save(video_id):
         video = Video.objects.get(id=video_id)
         source_path = video.video_file.path
         
-        resolutions = [360, 480, 720, 1080]
+        resolutions = [480, 720, 1080]
         
         for res in resolutions:
             convert_to_hls(video_id, source_path, res)
