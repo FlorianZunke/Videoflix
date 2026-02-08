@@ -5,7 +5,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model, authenticate
-from .utils import job_send_activation_mail
+from .utils import job_send_activation_mail, job_send_reset_password_mail
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 
@@ -104,7 +104,15 @@ class PasswordResetSerializer(serializers.Serializer):
     """
     Serializer for initiating password reset
     """
+    #Need check up and refactor on this, the reset link is generated in the frontend, but we need to send the email from the backend, so we need to generate the reset link here and send it to the frontend, maybe we can use a Celery task for this
     email = serializers.EmailField()
+    reset_link = f"{settings.FRONTEND_URL}/pages/auth/reset-password.html?email={email}"
+
+    try:
+        user = User.objects.get(email=email, is_active=True)
+        job_send_reset_password_mail(user.email, reset_link)
+    except Exception as e:
+            print(f"Mail-Fehler: {e}")
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):

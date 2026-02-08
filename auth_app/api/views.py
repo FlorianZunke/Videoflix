@@ -160,7 +160,7 @@ class PasswordResetView(APIView):
     """
     View for initiating a password reset process.
     """
-
+    
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
