@@ -14,8 +14,9 @@ class VideoSerializer(serializers.ModelSerializer):
             'category',
         ]
 
-    def get_thumbnail_as_img(self, obj):
-        # Need a check up on this, if the thumbnail is not an image, it will break the frontend
+    def get_thumbnail_url_to_img(self, obj):
         if obj.thumbnail_url:
-            return obj.thumbnail_url.url.replace('.png', '.jpg')
+            return obj.thumbnail_url.url
+        elif obj.video_url:
+            return obj.video_url.url.rsplit('.', 1)[0] + '.jpg'
         return None

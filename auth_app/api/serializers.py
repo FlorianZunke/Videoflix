@@ -3,10 +3,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model, authenticate
-from .utils import job_send_activation_mail, job_send_reset_password_mail
+from .utils import job_send_activation_mail
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions
 from django.conf import settings
 
 
@@ -102,31 +103,22 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
     
 class PasswordResetSerializer(serializers.Serializer):
     """
-    Serializer for initiating password reset
+    Validiert nur, ob die E-Mail ein gültiges Format hat.
     """
-    #Need check up and refactor on this, the reset link is generated in the frontend, but we need to send the email from the backend, so we need to generate the reset link here and send it to the frontend, maybe we can use a Celery task for this
     email = serializers.EmailField()
-    reset_link = f"{settings.FRONTEND_URL}/pages/auth/reset-password.html?email={email}"
-
-    try:
-        user = User.objects.get(email=email, is_active=True)
-        job_send_reset_password_mail(user.email, reset_link)
-    except Exception as e:
-            print(f"Mail-Fehler: {e}")
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
-    """
-    Serializer for confirming password reset
-    """
     new_password = serializers.CharField(write_only=True, min_length=8)
     confirmed_password = serializers.CharField(write_only=True, min_length=8)
 
-
     def validate(self, data):
-        """
-        Validate that the new password and confirmed password match
-        """
         if data['new_password'] != data['confirmed_password']:
-            raise serializers.ValidationError("Passwords do not match")
+            raise serializers.ValidationError({"confirmed_password": "Die Passwörter stimmen nicht überein."})
+    
+        try:
+            validate_password(data['new_password'])
+        except exceptions.ValidationError as e:
+            raise serializers.ValidationError({"new_password": list(e.messages)})
+            
         return data

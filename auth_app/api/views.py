@@ -1,4 +1,4 @@
-import token
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
@@ -10,10 +10,12 @@ from django.utils.encoding import force_bytes
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+import django_rq
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .serializers import RegisterSerializer, CustomTokenObtainPairSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
 from core import settings
+from .utils import job_send_reset_password_mail
 
 User = get_user_model()
 class RegisterView(APIView):
@@ -157,39 +159,23 @@ class ActivateAccountView(APIView):
 
 
 class PasswordResetView(APIView):
-    """
-    View for initiating a password reset process.
-    """
-    
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
-            
-            try:
-                user = User.objects.get(email=email, is_active=True)
-            except User.DoesNotExist:
-                return Response({"detail": "An email has been sent to reset your password."}, status=200)
-            
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-            
-            reset_link = f"{settings.FRONTEND_URL}/reset-password-confirm/{uid}/{token}/"
+            user = User.objects.filter(email=email, is_active=True).first()
 
-            subject = "Passwort zurücksetzen für dein Videoflix Konto"
-            message = f"Setze dein Passwort zurück: {reset_link}"
+            if user:
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                
+                reset_link = f"{settings.FRONTEND_URL}/pages/auth/confirm_password.html?uid={uid}&token={token}"
 
-            send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
+                django_rq.enqueue(job_send_reset_password_mail, user.email, reset_link)
 
-            return Response({"detail": "An email has been sent to reset your password."}, status=200)
+            return Response({"detail": "Falls ein Konto existiert, wurde eine E-Mail gesendet."}, status=200)
+        
         return Response(serializer.errors, status=400)
-
 
 class PasswordResetConfirmView(APIView):
     def post(self, request, uidb64, token):

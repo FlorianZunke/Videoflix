@@ -7,7 +7,7 @@
   <body>
     {% load static %}
     <img src="{% static 'logo_icon.svg' %}" alt="Videoflix">  
-    <h2>Dear "{{ username }}",</h2>
+    <h2>Dear {{ username }},</h2>
     <p>Thank you for registering with Videoflix. To complete your registration and verify your email address, please click the link below:</p>
     <p><a href="{{ link }}">Activate Account</a></p>
     <p>If you did not create an account with us, please disregard this email.</p>

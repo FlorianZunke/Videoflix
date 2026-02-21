@@ -36,7 +36,6 @@ class VideoHlsManifestView(APIView):
             candidate = os.path.normpath(os.path.join(
                 base_dir, str(movie_id), resolution, 'index.m3u8'))
 
-            # prevent path traversal
             if not candidate.startswith(base_dir + os.sep):
                 raise Http404('Invalid HLS manifest path')
 
@@ -64,7 +63,6 @@ class VideoSegmentView(APIView):
             candidate = os.path.normpath(os.path.join(
                 base_dir, str(movie_id), resolution, segment))
 
-            # prevent path traversal
             if not candidate.startswith(base_dir + os.sep):
                 raise Http404('Invalid segment path')
 

@@ -21,8 +21,9 @@ def job_send_activation_mail(recipient_username, activation_link):
 
 def job_send_reset_password_mail(recipient_email, reset_link):
     subject = "Passwort zurücksetzen für dein Videoflix Konto"
-    context = {'link': reset_link}
-    html_message = render_to_string('password_reset_mail.html', context)
+    context = {'email': recipient_email, 'link': reset_link}
+    
+    html_message = render_to_string('reset_password.html', context)
     plain_message = strip_tags(html_message)
     
     send_mail(
