@@ -110,11 +110,11 @@ class PasswordResetSerializer(serializers.Serializer):
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True, min_length=8)
-    confirmed_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate(self, data):
-        if data['new_password'] != data['confirmed_password']:
-            raise serializers.ValidationError({"confirmed_password": "Die Passwörter stimmen nicht überein."})
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Die Passwörter stimmen nicht überein."})
     
         try:
             validate_password(data['new_password'])
