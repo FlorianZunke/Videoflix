@@ -14,6 +14,9 @@ from auth_app.api.authentication import CookieJWTAuthentication
 
 
 class VideoListView(ListModelMixin, GenericViewSet):
+    """
+    ViewSet for listing all videos. It requires authentication and uses the `VideoSerializer` to serialize the video data.
+    """
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
@@ -22,11 +25,16 @@ class VideoListView(ListModelMixin, GenericViewSet):
 
 
 class VideoHlsManifestView(APIView):
+    """
+    View for serving HLS master playlist and segments. It checks the requested path for the movie ID, resolution, and segment, validates the path to prevent directory traversal attacks, and serves the appropriate file if it exists.
+    """
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
-        # Handle HLS master playlist: /video/<movie_id>/<resolution>/index.m3u8
+        """
+        Handle HLS manifest: /video/<movie_id>/<resolution>/index.m3u8
+        """
         if 'movie_id' in kwargs and 'resolution' in kwargs and request.path.endswith('index.m3u8'):
             movie_id = kwargs.get('movie_id')
             resolution = kwargs.get('resolution')
@@ -48,11 +56,16 @@ class VideoHlsManifestView(APIView):
 
 
 class VideoSegmentView(APIView):
+    """
+    View for serving HLS segments. It checks the requested path for the movie ID, resolution, and segment, validates the path to prevent directory traversal attacks, and serves the appropriate file if it exists.
+    """
     permission_classes = [IsAuthenticated]
     authentication_classes = [CookieJWTAuthentication]
 
     def get(self, request, *args, **kwargs):
-        # Handle HLS segment: /video/<movie_id>/<resolution>/<segment>/
+        """
+        Handle HLS segments: /video/<movie_id>/<resolution>/<segment>
+        """
         if 'movie_id' in kwargs and 'resolution' in kwargs and 'segment' in kwargs:
             movie_id = kwargs.get('movie_id')
             resolution = kwargs.get('resolution')

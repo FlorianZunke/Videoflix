@@ -71,6 +71,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):
+    """
+    Custom serializer for obtaining JWT tokens with email and password.
+    """
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -103,12 +106,15 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
     
 class PasswordResetSerializer(serializers.Serializer):
     """
-    Validiert nur, ob die E-Mail ein gültiges Format hat.
+    validator for password reset request, only requires email to send the reset link
     """
     email = serializers.EmailField()
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
+    """
+    validator for confirming password reset, requires new password and confirm password fields
+    """
     new_password = serializers.CharField(write_only=True, min_length=8)
     confirm_password = serializers.CharField(write_only=True, min_length=8)
 

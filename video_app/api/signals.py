@@ -10,6 +10,10 @@ from .utils import convert_and_save
 
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
+    """
+    Signal handler for `post_save` signal of `Video` model.
+    It updates the `conversion_status` field to 'processing' and enqueues the `convert_and_save` function to be executed in the background using RQ.
+    """
     if created:
         Video.objects.filter(pk=instance.pk).update(conversion_status='processing')
 
@@ -18,7 +22,6 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def auto_delete_video_on_delete(sender, instance, **kwargs):
-
     """
     Deletes file from filesystem when corresponding `Video` object is deleted.
     """

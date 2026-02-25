@@ -19,9 +19,15 @@ from .utils import job_send_reset_password_mail
 
 User = get_user_model()
 class RegisterView(APIView):
+    """ 
+    View for user registration
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Handle POST requests for user registration.
+        """
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -140,9 +146,15 @@ class LogoutView(APIView):
 
 
 class ActivateAccountView(APIView):
+    """
+    View for activating a user account via email link.
+    """
     permission_classes = [AllowAny]
 
     def get(self, request, uidb64, token):
+        """
+        Handle GET requests for activating a user account.
+        """
         try:
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
@@ -159,7 +171,14 @@ class ActivateAccountView(APIView):
 
 
 class PasswordResetView(APIView):
+    """
+    View for handling password reset requests by sending a reset link to the user's email.
+    """
+
     def post(self, request):
+        """
+        Handle POST requests for password reset by validating the email and sending a reset link.
+        """
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
@@ -178,7 +197,13 @@ class PasswordResetView(APIView):
         return Response(serializer.errors, status=400)
 
 class PasswordResetConfirmView(APIView):
+    """
+    View for confirming password reset by validating the token and setting the new password.
+    """
     def post(self, request, uidb64, token):
+        """
+        Handle POST requests for confirming password reset by validating the token and setting the new password.
+        """
         serializer = PasswordResetConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         

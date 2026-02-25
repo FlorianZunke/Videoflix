@@ -5,6 +5,9 @@ from django.conf import settings
 
 
 def convert_to_hls(video_id, video_path, resolution):
+    """
+    Converts a video to HLS format using ffmpeg and saves it to the specified output directory.
+    """
     output_dir = os.path.join(settings.MEDIA_ROOT, 'hls', str(video_id), f"{resolution}p")
     os.makedirs(output_dir, exist_ok=True)
     
@@ -17,6 +20,8 @@ def convert_to_hls(video_id, video_path, resolution):
     subprocess.run(cmd, shell=True, check=True)
 
 def convert_and_save(video_id):
+    """
+    Converts the video to HLS format and updates the conversion status in the database."""
     from video_app.models import Video 
     
     try:

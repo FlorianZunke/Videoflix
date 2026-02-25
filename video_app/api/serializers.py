@@ -3,6 +3,9 @@ from video_app.models import Video
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Video model, includes a method to get the thumbnail URL
+    """
     class Meta:
         model = Video
         fields = [
@@ -15,6 +18,9 @@ class VideoSerializer(serializers.ModelSerializer):
         ]
 
     def get_thumbnail_url_to_img(self, obj):
+        """
+        Returns the URL of the thumbnail image. If the thumbnail is not available, it generates a URL based on the video URL.
+        """
         if obj.thumbnail_url:
             return obj.thumbnail_url.url
         elif obj.video_url:
