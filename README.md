@@ -26,12 +26,13 @@ Ein Django-basiertes Backend für eine Video-Streaming-Plattform mit Benutzeraut
 - Cookie-basierte JWT-Token-Authentifizierung
 - Passwort-Reset mit E-Mail-Bestätigung
 - Token-Refresh-Mechanismus
+- Deutsche E-Mail-Templates mit Logo-Unterstützung
 
 🎥 **Video-Management**
 - Video-Upload mit Metadaten (Titel, Beschreibung, Kategorie)
 - HLS (HTTP Live Streaming) für verschiedene Auflösungen
 - Video-Konversionsstatus-Tracking
-- Thumbnail-Verwaltung
+- Automatische Thumbnail-Generierung während der Videokonvertierung
 
 🔧 **Backend-Features**
 - Django REST Framework für RESTful APIs
@@ -262,6 +263,8 @@ http://localhost:8000/api/
 
 ### Authentifizierung
 
+**Hinweis:** Alle E-Mail-Benachrichtigungen (Aktivierung, Passwort-Reset) werden auf Deutsch versendet und enthalten das Videoflix-Logo als Anhang.
+
 #### 📝 Benutzer registrieren
 **Endpoint:** `POST /register/`
 
@@ -397,6 +400,8 @@ http://localhost:8000/api/
 ---
 
 ### Videos
+
+**Hinweis:** Thumbnails werden automatisch während der Videokonvertierung generiert und gespeichert.
 
 #### 📺 Alle Videos auflisten
 **Endpoint:** `GET /video/`
@@ -858,4 +863,4 @@ Bei Fragen oder Problemen:
 
 ---
 
-**Letzte Aktualisierung:** 25. Februar 2026
+**Letzte Aktualisierung:** 16 März 2026

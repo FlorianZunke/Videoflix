@@ -12,6 +12,9 @@ def create_thumbnail(video_path, thumbnail_path):
     subprocess.run(cmd, shell=True, check=True)
 
 def convert_and_save(video_id):
+    """
+    Converts the video to HLS format, creates a thumbnail, and updates the conversion status in the database.
+    """
     from video_app.models import Video 
     try:
         video = Video.objects.get(id=video_id)
