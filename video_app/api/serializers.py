@@ -17,12 +17,10 @@ class VideoSerializer(serializers.ModelSerializer):
             'category',
         ]
 
-    def get_thumbnail_url_to_img(self, obj):
-        """
-        Returns the URL of the thumbnail image. If the thumbnail is not available, it generates a URL based on the video URL.
-        """
+    def get_thumbnail(self, obj):
         if obj.thumbnail_url:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail_url.url)
             return obj.thumbnail_url.url
-        elif obj.video_url:
-            return obj.video_url.url.rsplit('.', 1)[0] + '.jpg'
         return None
