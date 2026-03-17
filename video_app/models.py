@@ -7,7 +7,7 @@ class Video(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     video_file = models.FileField(upload_to='videos/')
     thumbnail_url = models.FileField(upload_to='thumbnails/', null=True, blank=True)
-    category = models.CharField(max_length=100, null=True, blank=True)
+    category = models.CharField(max_length=100)
     conversion_status = models.CharField(
         max_length=20, 
         default='pending', 
