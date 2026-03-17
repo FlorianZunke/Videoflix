@@ -92,7 +92,7 @@ choco install ffmpeg
 
 ```powershell
 # 1. Zum Projektverzeichnis navigieren
-cd C:\Users\[YourUsername]\Programierung\Backend_Projekte\Videoflix\Videoflix
+cd Hier deinen Pfad zum Projekt einfügen
 
 # 2. Virtuelle Umgebung erstellen
 python -m venv env
@@ -110,17 +110,6 @@ pip install -r requirements.txt
 # 5. Environment-Variablen konfigurieren
 # Datei .env im Projektverzeichnis erstellen und .env.template kopieren
 Copy-Item .env.template .env
-
-# 6. Datenbank-Migrationen durchführen
-python manage.py migrate
-
-# 7. Admin-User erstellen
-python manage.py createsuperuser
-
-# 8. Development-Server starten
-python manage.py runserver
-
-# Der Server läuft dann unter: http://localhost:8000
 ```
 
 #### RQ Worker starten (für Hintergrund-Jobs)
@@ -166,7 +155,7 @@ brew install ffmpeg
 
 ```bash
 # 1. Zum Projektverzeichnis navigieren
-cd ~/Programierung/Backend_Projekte/Videoflix/Videoflix
+cd ~/Hier deinen Pfad zum Projekt einfügen
 
 # 2. Virtuelle Umgebung erstellen
 python3.12 -m venv env
@@ -180,17 +169,6 @@ pip install -r requirements.txt
 
 # 5. Environment-Variablen konfigurieren
 cp .env.template .env
-
-# 6. Datenbank-Migrationen durchführen
-python manage.py migrate
-
-# 7. Admin-User erstellen
-python manage.py createsuperuser
-
-# 8. Development-Server starten
-python manage.py runserver
-
-# Der Server läuft dann unter: http://localhost:8000
 ```
 
 #### RQ Worker starten (für Hintergrund-Jobs)
@@ -217,7 +195,8 @@ DJANGO_SUPERUSER_EMAIL=admin@example.com
 SECRET_KEY="your-secret-key-here"
 DEBUG=True  # WICHTIG: In Produktion auf False setzen!
 ALLOWED_HOSTS=localhost,127.0.0.1,example.com
-CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://localhost:3000
+CSRF_TRUSTED_ORIGINS=http://localhost:5500,http://127.0.0.1:5500,http://localhost:4200,http://127.0.0.1:4200
+FRONTEND_URL=http://127.0.0.1:5500
 
 # Datenbankverbindung
 DB_NAME=videoflix_db
@@ -241,7 +220,7 @@ EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=noreply@videoflix.com
 
 # Frontend-URL
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5500
 ```
 
 ### Wichtige Einstellungen in `core/settings.py`
@@ -630,6 +609,36 @@ brew services start redis
 
 ---
 
+### 🔴 Problem: "backend.entrypoint.sh: Permission denied / bad interpreter"
+
+**Ursache:** Line Endings auf CRLF statt LF (häufig bei Windows Git-Konfiguration)
+
+**Lösung:**
+
+```bash
+# Line Endings von CRLF zu LF konvertieren
+dos2unix backend.entrypoint.sh
+
+# Oder mit sed:
+sed -i 's/\r$//' backend.entrypoint.sh
+
+# Oder mit Git (global):
+git config --global core.autocrlf input
+
+# Datei erneut auschecken:
+git rm --cached backend.entrypoint.sh
+git checkout backend.entrypoint.sh
+```
+
+In Docker sollte dies automatisch gehandhabt werden, kann aber manuell behoben werden:
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+---
+
 ### 🔴 Problem: "CORS policy: response to preflight request" Error
 
 **Ursache:** CORS nicht korrekt konfiguriert
@@ -863,4 +872,4 @@ Bei Fragen oder Problemen:
 
 ---
 
-**Letzte Aktualisierung:** 16 März 2026
+**Letzte Aktualisierung:** 17 März 2026
