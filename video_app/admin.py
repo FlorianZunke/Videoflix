@@ -7,4 +7,4 @@ from .models import Video
 class VideoAdmin(admin.ModelAdmin):
     readonly_fields = ('thumbnail_url', 'conversion_status')
     
-    list_display = ('title', 'category', 'conversion_status')
+    list_display = ('title', 'description', 'category', 'conversion_status')
