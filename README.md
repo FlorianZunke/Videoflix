@@ -163,6 +163,13 @@ pip install -r requirements.txt
 # 5. Environment-Variablen konfigurieren
 # Datei .env im Projektverzeichnis erstellen und .env.template kopieren
 Copy-Item .env.template .env
+
+# 6. Datenbank-Migrationen durchführen
+python manage.py makemigrations
+python manage.py migrate
+
+# 7. Superuser erstellen (optional)
+python manage.py createsuperuser
 ```
 
 #### RQ Worker starten (für Hintergrund-Jobs)
@@ -222,6 +229,13 @@ pip install -r requirements.txt
 
 # 5. Environment-Variablen konfigurieren
 cp .env.template .env
+
+# 6. Datenbank-Migrationen durchführen
+python manage.py makemigrations
+python manage.py migrate
+
+# 7. Superuser erstellen (optional)
+python manage.py createsuperuser
 ```
 
 #### RQ Worker starten (für Hintergrund-Jobs)
@@ -255,6 +269,7 @@ docker-compose build
 docker-compose up
 
 # 3. Migrationen durchführen
+docker-compose exec web python manage.py makemigrations
 docker-compose exec web python manage.py migrate
 
 # 4. Superuser erstellen
