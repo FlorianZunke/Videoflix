@@ -132,7 +132,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         """
-        Handle POST requests for logging out a user.
+        Handle POST requests for logging out a user by clearing authentication cookies and blacklisting the refresh token.
         """
         response = Response(
             {"detail": "Log-Out successfully! All Tokens will be deleted. Refresh token is now invalid."}, status=status.HTTP_200_OK)
@@ -156,6 +156,10 @@ class ActivateAccountView(APIView):
         Handle GET requests for activating a user account.
         """
         try:
+            """
+            Decode the UID from the URL and retrieve the corresponding user.
+            If the token is valid, activate the user's account.
+            """
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
             
@@ -181,10 +185,16 @@ class PasswordResetView(APIView):
         """
         serializer = PasswordResetSerializer(data=request.data)
         if serializer.is_valid():
+            """
+            Validate the email and send a password reset link if the user exists and is active.
+            """
             email = serializer.validated_data['email']
             user = User.objects.filter(email=email, is_active=True).first()
 
             if user:
+                """
+                Generate a password reset token and send a reset link to the user's email.
+                """
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 
@@ -208,12 +218,18 @@ class PasswordResetConfirmView(APIView):
         serializer.is_valid(raise_exception=True)
         
         try:
+            """Decode the UID from the URL and retrieve the corresponding user.
+            If the token is valid, set the new password for the user.
+            """
             uid = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, ObjectDoesNotExist):
             user = None
             
         if user is not None and default_token_generator.check_token(user, token):
+            """
+            Set the new password for the user and save the changes.
+            """
             new_password = serializer.validated_data['new_password']
             user.set_password(new_password)
             user.save()

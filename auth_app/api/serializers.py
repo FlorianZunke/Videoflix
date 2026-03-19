@@ -47,6 +47,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
     
     def save(self, **kwargs):
+        """
+        Create a new user with the provided email and password, set the user as inactive, generate an activation token, and send an activation email.
+        """
         user = User.objects.create_user(
             username=self.validated_data['email'],
             email=self.validated_data['email'],
@@ -78,6 +81,9 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        """
+        Validate the email and password, authenticate the user, and return JWT tokens.
+        """
         email = attrs.get("email")
         password = attrs.get("password")
 
@@ -119,6 +125,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     confirm_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate(self, data):
+        """
+        Validate that the new password and confirm password match and meet the password validation criteria.
+        """
         if data['new_password'] != data['confirm_password']:
             raise serializers.ValidationError({"confirm_password": "Die Passwörter stimmen nicht überein."})
     

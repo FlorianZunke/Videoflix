@@ -18,6 +18,9 @@ class VideoSerializer(serializers.ModelSerializer):
         ]
 
     def get_thumbnail(self, obj):
+        """
+        Return the absolute URL for the thumbnail if it exists, otherwise return None
+        """
         if obj.thumbnail_url:
             request = self.context.get('request')
             if request:

@@ -248,22 +248,19 @@ https://docs.docker.com/desktop/install/mac-install/
 ### Mit Docker Compose starten
 
 ```bash
-# 1. .env-Datei erstellen (siehe Konfiguration)
-cp .env.template .env
-
-# 2. Docker Images bauen
+# 1. Docker Images bauen
 docker-compose build
 
-# 3. Container starten
+# 2. Container starten
 docker-compose up
 
-# 4. Migrationen durchführen
+# 3. Migrationen durchführen
 docker-compose exec web python manage.py migrate
 
-# 5. Superuser erstellen
+# 4. Superuser erstellen
 docker-compose exec web python manage.py createsuperuser
 
-# 6. RQ Worker starten
+# 5. RQ Worker starten
 docker-compose exec web python manage.py rqworker default
 
 # Logs anschauen
